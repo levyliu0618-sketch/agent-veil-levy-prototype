@@ -1,0 +1,21 @@
+{
+  "name": "agent-veil-levy-prototype",
+  "private": true,
+  "version": "0.1.0",
+  "description": "Agent Veil interface prototype (Levy's proposal): adjustable views of an AI coding agent's process. Demo replay with authored example data.",
+  "type": "module",
+  "scripts": {
+    "build": "node build.mjs",
+    "test": "tsx --test tests/logic.test.ts",
+    "e2e": "python3 tests/e2e.py http://localhost:4173/",
+    "serve": "python3 -m http.server 4173 --directory docs"
+  },
+  "dependencies": {
+    "react": "^19.2.0",
+    "react-dom": "^19.2.0"
+  },
+  "devDependencies": {
+    "esbuild": "^0.28.0",
+    "tsx": "^4.20.0"
+  }
+}

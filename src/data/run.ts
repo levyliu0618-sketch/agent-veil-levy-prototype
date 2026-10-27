@@ -1,0 +1,278 @@
+// AUTHORED DEMO DATA. This is a hand-written replay, not a real agent run.
+// No model was called, no tests in this story were actually executed, and no
+// subagents were created. Every step, tool call, check and version below is
+// cross-referenced so all views stay consistent.
+
+import type { RunRecord } from "./types";
+
+export const RUN: RunRecord = {
+  id: "demo-circuit-viewer-01",
+  task: {
+    title: "3D circuit-board viewer",
+    request:
+      "Build an interactive 3D viewer for a small circuit board, as a single HTML file. People should be able to orbit and zoom, see each part with its designator, and switch board layers on and off.",
+    disclaimer: "Fictional demo board. Not a real or verified circuit, and not a circuit simulator.",
+  },
+  duration: 100,
+  finalVersionId: "v3",
+
+  agents: [
+    { id: "builder", name: "Builder", role: "Main agent. Plans, writes the viewer, decides what to fix.", kind: "main" },
+    { id: "tester", name: "Test runner", role: "Subagent. Runs the interaction tests it is given.", kind: "subagent" },
+    { id: "reviewer", name: "Reviewer", role: "Subagent. Reviews keyboard access and narrow-screen layout.", kind: "subagent" },
+  ],
+
+  criteria: [
+    { id: "A1", text: "Every part shows its designator (like R1 or U1), and selecting a part shows what it is.", howToTry: "Click a part in the preview.", tryable: true },
+    { id: "A2", text: "You can orbit around the board and zoom in and out.", howToTry: "Drag the board, or use the orbit and zoom buttons.", tryable: true },
+    { id: "A3", text: "Board layers can be switched on and off one at a time.", howToTry: "Use the Board layers checkboxes in the preview.", tryable: true },
+    { id: "A4", text: "Everything works with a keyboard: Tab reaches each part, arrow keys orbit, + and − zoom.", howToTry: "Click into the preview, then press Tab and the arrow keys.", tryable: true },
+    { id: "A5", text: "On a narrow screen (about 390 px wide), controls don't cover the board.", howToTry: "Make the window narrow and look at the preview.", tryable: true },
+    { id: "A6", text: "It works as one HTML file, offline.", howToTry: "Can't be tried inside this preview.", tryable: false },
+  ],
+
+  steps: [
+    {
+      id: "s1", agentId: "builder", t: 0,
+      status: "Reading the request",
+      narration: {
+        terse: "Reading the request.",
+        standard: "Reading the request and turning it into a list of requirements I can check.",
+        verbose: "Reading the request first. I want each requirement written so it can be checked on its own — orbit, zoom, designators, layers, keyboard and narrow screens — before I write any code.",
+      },
+      notes: [
+        { question: "What counts as done?", answer: "I split the request into six requirements (A1–A6, shown on the left). Keyboard use and narrow screens weren't in the original words, but a viewer people rely on needs both, so I added them as explicit items rather than assuming." },
+      ],
+    },
+    {
+      id: "s2", agentId: "builder", t: 9,
+      status: "Planning the board data",
+      narration: {
+        terse: "Writing board data: 12 parts, 4 layers.",
+        standard: "Writing a small board description: 12 parts and 4 layers that the viewer will draw.",
+        verbose: "Writing a small board description first — 12 parts with designators, sizes and heights, plus traces for top and bottom copper. Keeping data separate from drawing code makes it easier to test that every part is shown.",
+      },
+      notes: [
+        { question: "Why a made-up board?", answer: "The request is about the viewer, not the electronics. A small invented board keeps the demo honest: it isn't presented as a real, working circuit." },
+      ],
+    },
+    {
+      id: "s3", agentId: "builder", t: 18, producesVersion: "v1",
+      status: "Building the first version",
+      narration: {
+        terse: "First version: static 3D board.",
+        standard: "Building a first version: the board drawn in 3D from one fixed angle, with every designator printed on it.",
+        verbose: "Building a first version that only draws the board in 3D from one fixed angle, with every designator printed on it. No controls yet — I want to confirm the scene renders before adding interaction.",
+      },
+      notes: [
+        { question: "Why CSS 3D instead of a WebGL library?", answer: "CSS 3D keeps it one small file with nothing to download, so it can work offline. The trade-off is simpler shading — no realistic lighting." },
+      ],
+    },
+    {
+      id: "s4", agentId: "builder", t: 31, producesVersion: "v2",
+      status: "Adding orbit, zoom, layers and part details",
+      narration: {
+        terse: "Adding orbit, zoom, layers, part details.",
+        standard: "Adding drag-to-orbit, zoom, layer switches and a details panel for the selected part. The first smoke test failed; fixed and re-ran.",
+        verbose: "Adding drag-to-orbit, zoom buttons and wheel zoom, four layer switches, and a details panel that opens when you click a part. The first smoke test failed because the view was read before it existed; I moved the setup and the re-run passed.",
+      },
+      notes: [
+        { question: "Why run a test after every edit?", answer: "Small edits are easier to undo. Running a quick check after each one meant the failure pointed at a single change instead of four." },
+      ],
+    },
+    {
+      id: "s5", agentId: "builder", t: 53,
+      status: "Asking two helpers to check the viewer",
+      narration: {
+        terse: "Delegating tests and a review.",
+        standard: "Sending the viewer to a Test runner (interaction tests) and a Reviewer (keyboard access and narrow-screen layout).",
+        verbose: "Sending the current viewer to two helpers in parallel: a Test runner that runs the interaction tests, and a Reviewer that checks keyboard access and the narrow-screen layout. They look at different things on purpose.",
+      },
+      notes: [
+        { question: "Why two separate checks?", answer: "Tests confirm the features behave the way the tests describe them. A reviewer looking at the page can catch things the tests never ask about. Neither one alone shows the work is correct." },
+      ],
+    },
+    {
+      id: "s5a", agentId: "tester", parentStepId: "s5", t: 56,
+      status: "Running interaction tests",
+      narration: {
+        terse: "Running 6 interaction tests.",
+        standard: "Running the 6 interaction tests against the current viewer.",
+        verbose: "Running the 6 interaction tests against the current viewer: drag to orbit, wheel and button zoom, each layer switch, and clicking a part.",
+      },
+      notes: [],
+    },
+    {
+      id: "s5b", agentId: "reviewer", parentStepId: "s5", t: 56,
+      status: "Reviewing keyboard access and layout",
+      narration: {
+        terse: "Checking keyboard and narrow layout.",
+        standard: "Reading the viewer code, then walking through it with the keyboard and at 390 px wide.",
+        verbose: "Reading the viewer code, then walking through the page using only the Tab and arrow keys, then loading it 390 px wide to see whether controls cover the board.",
+      },
+      notes: [
+        { question: "Why test with the keyboard only?", answer: "Requirement A4 is about keyboard use, and the existing tests only use a mouse or touch, so they couldn't show whether A4 is met." },
+      ],
+    },
+    {
+      id: "s6", agentId: "builder", t: 70,
+      status: "Weighing the two reports",
+      narration: {
+        terse: "Tests passed; review found a keyboard issue.",
+        standard: "All 6 tests passed, but the Reviewer found that parts can't be reached with the keyboard. I'll fix that.",
+        verbose: "All 6 tests passed, but the Reviewer found that parts are clickable boxes the keyboard can't reach, and orbit only works by dragging. The tests never pressed a key, so both reports can be true at once. A4 is not met; I'll fix it.",
+      },
+      notes: [
+        { question: "The tests passed — why change anything?", answer: "The tests and the review checked different things. Passing tests don't cancel a failed requirement. A4 is explicit, so it has to be fixed rather than noted." },
+      ],
+    },
+    {
+      id: "s7", agentId: "builder", t: 74, producesVersion: "v3",
+      status: "Fixing keyboard access",
+      narration: {
+        terse: "Parts are now buttons; arrow keys orbit.",
+        standard: "Making each part a real button with a name, and adding arrow-key orbit and +/− zoom. Added a keyboard test.",
+        verbose: "Making each part a real button with a spoken name (for example “U1, Microcontroller”), adding arrow-key orbit and +/− zoom on the board, and giving every control a visible label. I added a keyboard test so the gap the Reviewer found stays covered.",
+      },
+      notes: [
+        { question: "Why add a test instead of just fixing it?", answer: "The original tests missed this. Adding a keyboard test means a later edit that breaks it would show up as a failure." },
+      ],
+    },
+    {
+      id: "s8", agentId: "builder", t: 91,
+      status: "Final check and handoff",
+      narration: {
+        terse: "Done. One requirement not checked.",
+        standard: "The fixed viewer is the final result. Layout re-checked at 390 px. Offline use from a single file was not checked.",
+        verbose: "The fixed viewer is the final result. I re-checked the layout at 390 px. I could not check opening the file directly from disk without a network, so A6 is marked “Not checked” rather than passed.",
+      },
+      notes: [
+        { question: "What is still unchecked?", answer: "Opening the file straight from disk with no network. The sandbox had no way to do that, so I'm reporting it as unchecked instead of assuming it works." },
+      ],
+    },
+  ],
+
+  toolCalls: [
+    { id: "tc1", stepId: "s1", agentId: "builder", t: 3, tool: "Read", target: "task/request.md", status: "ok",
+      summary: "Read requirements — 1 file, 4 sentences",
+      command: "read task/request.md",
+      output: "# Request\nBuild an interactive 3D viewer for a small circuit board, as a single HTML file.\nPeople should be able to orbit and zoom, see each part with its designator,\nand switch board layers on and off.\n\n(4 sentences, 0 attachments)" },
+    { id: "tc2", stepId: "s2", agentId: "builder", t: 13, tool: "Write", target: "board-data.json", status: "ok",
+      summary: "Wrote board data — 12 parts, 4 layers",
+      command: "write board-data.json  (2.1 KB)",
+      output: "{\n  \"board\": { \"name\": \"AV-01 demo sensor board\", \"w\": 100, \"h\": 64 },\n  \"layers\": [\"components\", \"silkscreen\", \"topCopper\", \"bottomCopper\"],\n  \"parts\": [\n    { \"ref\": \"U1\", \"kind\": \"Microcontroller\" },\n    { \"ref\": \"U2\", \"kind\": \"Voltage regulator\" },\n    { \"ref\": \"J1\", \"kind\": \"USB-C connector\" },\n    ... 9 more\n  ]\n}\nwrote 2,148 bytes" },
+    { id: "tc3", stepId: "s3", agentId: "builder", t: 22, tool: "Write", target: "viewer.html", status: "ok",
+      summary: "Wrote viewer — static 3D scene, 186 lines",
+      command: "write viewer.html  (186 lines)",
+      output: "wrote viewer.html (186 lines, 6.4 KB)\n- <div class=\"scene\"> with fixed rotateX(55deg) rotateZ(-20deg)\n- 12 part boxes from board-data.json\n- designator labels on silkscreen layer" },
+    { id: "tc4", stepId: "s3", agentId: "builder", t: 26, tool: "Bash", target: "viewer.html", status: "ok",
+      summary: "Ran render check — 12 of 12 parts visible",
+      command: "node checks/render.mjs viewer.html --screenshot out/v1.png",
+      output: "launching headless browser...\nloaded viewer.html in 212 ms\nparts found: 12 / 12\ndesignators found: U1 U2 J1 J2 Y1 C1 C2 C3 R1 R2 D1 SW1\nconsole errors: 0\nsaved out/v1.png\nRENDER OK" },
+    { id: "tc5", stepId: "s4", agentId: "builder", t: 34, tool: "Edit", target: "viewer.html", status: "ok",
+      summary: "Edited viewer — drag to orbit, wheel and button zoom (+48 lines)",
+      command: "edit viewer.html  @@ -120,6 +120,54 @@  add orbit + zoom handlers",
+      output: "+ const view = { tilt: 55, spin: -20, zoom: 1 };\n+ scene.addEventListener('pointerdown', startDrag);\n+ scene.addEventListener('wheel', onWheel, { passive: false });\n+ zoomIn.onclick = () => setZoom(view.zoom + 0.15);\n+ zoomOut.onclick = () => setZoom(view.zoom - 0.15);\napplied 1 hunk (+48 −0)" },
+    { id: "tc6", stepId: "s4", agentId: "builder", t: 37, tool: "Edit", target: "viewer.html", status: "ok",
+      summary: "Edited viewer — 4 layer switches (+31 lines)",
+      command: "edit viewer.html  @@ -60,4 +60,35 @@  add layer checkboxes",
+      output: "+ <fieldset class=\"layers\"><legend>Board layers</legend>\n+   <label><input type=\"checkbox\" data-layer=\"components\" checked> Components</label>\n+   ... 3 more\n+ </fieldset>\napplied 1 hunk (+31 −0)" },
+    { id: "tc7", stepId: "s4", agentId: "builder", t: 40, tool: "Edit", target: "viewer.html", status: "ok",
+      summary: "Edited viewer — part details panel on click (+27 lines)",
+      command: "edit viewer.html  @@ -150,3 +150,30 @@  add details panel",
+      output: "+ partEl.onclick = () => showDetails(part);\n+ function showDetails(p) { panel.textContent = `${p.ref} · ${p.kind} · ${p.value}`; }\napplied 1 hunk (+27 −0)" },
+    { id: "tc8", stepId: "s4", agentId: "builder", t: 43, tool: "Bash", target: "viewer.html", status: "failed",
+      summary: "Ran smoke test — failed: view used before it was set up",
+      command: "node checks/smoke.mjs viewer.html",
+      output: "launching headless browser...\nloaded viewer.html in 230 ms\nTypeError: Cannot read properties of undefined (reading 'tilt')\n    at applyView (viewer.html:131:22)\n    at viewer.html:96:3\nconsole errors: 1\nSMOKE FAILED (exit code 1)" },
+    { id: "tc9", stepId: "s4", agentId: "builder", t: 46, tool: "Edit", target: "viewer.html", status: "ok",
+      summary: "Edited viewer — moved setup above first draw (+2 −2 lines)",
+      command: "edit viewer.html  @@ -94,4 +94,4 @@  move view setup before applyView()",
+      output: "- applyView();\n- const view = { tilt: 55, spin: -20, zoom: 1 };\n+ const view = { tilt: 55, spin: -20, zoom: 1 };\n+ applyView();\napplied 1 hunk (+2 −2)" },
+    { id: "tc10", stepId: "s4", agentId: "builder", t: 49, tool: "Bash", target: "viewer.html", status: "ok",
+      summary: "Re-ran smoke test — passed",
+      command: "node checks/smoke.mjs viewer.html",
+      output: "launching headless browser...\nloaded viewer.html in 224 ms\nparts found: 12 / 12\nclick U1 -> details: \"U1 · Microcontroller · 32-pin QFN\"\ndrag 120px -> spin changed: -20 -> 16\nzoom button -> 1.00 -> 1.15\nconsole errors: 0\nSMOKE OK" },
+    { id: "tc11", stepId: "s5", agentId: "builder", t: 54, tool: "Delegate", target: "Test runner", status: "ok", delegatesTo: "tester",
+      summary: "Delegated interaction tests to Test runner",
+      command: "delegate --to test-runner --input viewer.html@v2 \"Run tests/interaction.spec and report results.\"",
+      output: "task st1 created for Test runner\nreturned at 1:02: 6 of 6 interaction tests passed. Tests use mouse and touch only." },
+    { id: "tc12", stepId: "s5", agentId: "builder", t: 55, tool: "Delegate", target: "Reviewer", status: "ok", delegatesTo: "reviewer",
+      summary: "Delegated keyboard and layout review to Reviewer",
+      command: "delegate --to reviewer --input viewer.html@v2 \"Check keyboard access (A4) and the layout at 390 px (A5). Report problems, not fixes.\"",
+      output: "task st2 created for Reviewer\nreturned at 1:09: One issue — parts can't be reached with the keyboard and orbit needs a mouse (A4 not met). Layout at 390 px is fine (A5 met)." },
+    { id: "tc13", stepId: "s5a", agentId: "tester", t: 60, tool: "Bash", target: "tests/interaction.spec", status: "ok",
+      summary: "Ran interaction tests — 6 passed, 0 failed",
+      command: "npx playwright test tests/interaction.spec --reporter=list",
+      output: "Running 6 tests using 1 worker\n  ✓ drag orbits the board (412ms)\n  ✓ wheel zooms in and out (198ms)\n  ✓ zoom buttons change zoom (156ms)\n  ✓ each layer switch hides its layer (604ms)\n  ✓ clicking a part opens details (171ms)\n  ✓ touch drag orbits the board (388ms)\n\n  6 passed (2.1s)" },
+    { id: "tc14", stepId: "s5b", agentId: "reviewer", t: 59, tool: "Read", target: "viewer.html", status: "ok",
+      summary: "Read viewer code — 292 lines",
+      command: "read viewer.html",
+      output: "viewer.html, 292 lines\nnoted: parts are <div class=\"part\" onclick=...> (no tabindex, no role)\nnoted: zoom buttons contain only \"+\" and \"−\" with no accessible name\nnoted: orbit uses pointer events only" },
+    { id: "tc15", stepId: "s5b", agentId: "reviewer", t: 63, tool: "Bash", target: "viewer.html", status: "failed",
+      summary: "Ran keyboard walk — failed: Tab never reaches a part",
+      command: "node checks/keyboard-walk.mjs viewer.html --presses 30",
+      output: "Tab 1: button \"+\" (no accessible name)\nTab 2: button \"−\" (no accessible name)\nTab 3: checkbox \"Components\"\nTab 4: checkbox \"Silkscreen (labels)\"\nTab 5: checkbox \"Top copper\"\nTab 6: checkbox \"Bottom copper\"\nTab 7: (back to start)\nparts reached: 0 / 12\nArrowLeft on board: spin unchanged (-20)\nKEYBOARD WALK FAILED: A4 not met" },
+    { id: "tc16", stepId: "s5b", agentId: "reviewer", t: 67, tool: "Bash", target: "viewer.html", status: "ok",
+      summary: "Ran layout check at 390 px — no overlap",
+      command: "node checks/layout.mjs viewer.html --width 390 --height 844",
+      output: "viewport 390x844\nboard box: 12,96 -> 378,404\ncontrols box: 12,416 -> 378,560\noverlap: none\nhorizontal scroll: none\nLAYOUT OK" },
+    { id: "tc17", stepId: "s7", agentId: "builder", t: 77, tool: "Edit", target: "viewer.html", status: "ok",
+      summary: "Edited viewer — parts become named buttons (+14 −9 lines)",
+      command: "edit viewer.html  @@ -140,9 +140,14 @@  <div class=part> -> <button class=part aria-label>",
+      output: "- const partEl = document.createElement('div');\n+ const partEl = document.createElement('button');\n+ partEl.setAttribute('aria-label', `${p.ref}, ${p.kind}`);\napplied 1 hunk (+14 −9)" },
+    { id: "tc18", stepId: "s7", agentId: "builder", t: 80, tool: "Edit", target: "viewer.html", status: "ok",
+      summary: "Edited viewer — arrow-key orbit, +/− zoom, labeled buttons (+36 lines)",
+      command: "edit viewer.html  @@ -170,2 +170,38 @@  keyboard orbit + zoom, button labels",
+      output: "+ stage.tabIndex = 0;\n+ stage.addEventListener('keydown', onKey);\n+ // ArrowLeft/Right: spin ±15°, ArrowUp/Down: tilt ±10°, +/−: zoom\n+ zoomIn.setAttribute('aria-label', 'Zoom in');\napplied 1 hunk (+36 −0)" },
+    { id: "tc19", stepId: "s7", agentId: "builder", t: 84, tool: "Bash", target: "viewer.html", status: "ok",
+      summary: "Re-ran keyboard walk — 12 of 12 parts reached",
+      command: "node checks/keyboard-walk.mjs viewer.html --presses 30",
+      output: "Tab 1: group \"3D board view\"\nArrowLeft: spin -20 -> -35\nArrowUp: tilt 55 -> 45\n'+': zoom 1.00 -> 1.15\nTab 2..13: buttons U1, U2, J1, J2, Y1, C1, C2, C3, R1, R2, D1, SW1\nEnter on R1 -> details: \"R1 · Resistor · 10 kΩ\"\nparts reached: 12 / 12\nKEYBOARD WALK OK" },
+    { id: "tc20", stepId: "s7", agentId: "builder", t: 87, tool: "Bash", target: "tests/interaction.spec", status: "ok",
+      summary: "Ran interaction tests — 7 passed, 0 failed",
+      command: "npx playwright test tests/interaction.spec --reporter=list",
+      output: "Running 7 tests using 1 worker\n  ✓ drag orbits the board (405ms)\n  ✓ wheel zooms in and out (201ms)\n  ✓ zoom buttons change zoom (160ms)\n  ✓ each layer switch hides its layer (611ms)\n  ✓ clicking a part opens details (169ms)\n  ✓ touch drag orbits the board (391ms)\n  ✓ keyboard reaches every part and orbits (702ms)\n\n  7 passed (2.8s)" },
+    { id: "tc21", stepId: "s8", agentId: "builder", t: 93, tool: "Bash", target: "viewer.html", status: "ok",
+      summary: "Ran layout check at 390 px — no overlap",
+      command: "node checks/layout.mjs viewer.html --width 390 --height 844",
+      output: "viewport 390x844\nboard box: 12,96 -> 378,404\ncontrols box: 12,416 -> 378,600\noverlap: none\nhorizontal scroll: none\nLAYOUT OK" },
+    { id: "tc22", stepId: "s8", agentId: "builder", t: 95, tool: "Bash", target: "viewer.html (offline)", status: "not_run",
+      summary: "Offline check — not run: no way to open a local file without network here",
+      command: "node checks/offline.mjs viewer.html --no-network",
+      output: "NOT RUN\nreason: the sandbox browser can only load pages over its test server; opening file:// with networking disabled is not available.\nA6 remains unchecked." },
+  ],
+
+  versions: [
+    { id: "v1", number: 1, t: 28, stepId: "s3", title: "Static board",
+      changes: ["Board drawn in 3D from one fixed angle", "All 12 designators printed on the board", "No controls yet"] },
+    { id: "v2", number: 2, t: 47, stepId: "s4", title: "Interactive viewer",
+      changes: ["Drag to orbit; wheel and +/− buttons to zoom", "Four Board layers switches", "Click a part to see its details"] },
+    { id: "v3", number: 3, t: 82, stepId: "s7", title: "Keyboard access fixed",
+      changes: ["Parts are buttons you can reach with Tab", "Arrow keys orbit, + and − zoom", "Every control has a visible, spoken name"] },
+  ],
+
+  checks: [
+    { id: "k1", criterionId: "A1", t: 49, versionId: "v2", result: "passed", toolCallId: "tc10", note: "12 of 12 parts found; clicking U1 opened its details." },
+    { id: "k2", criterionId: "A2", t: 49, versionId: "v2", result: "passed", toolCallId: "tc10", note: "Drag changed the angle; zoom button changed zoom." },
+    { id: "k3", criterionId: "A2", t: 60, versionId: "v2", result: "passed", toolCallId: "tc13", note: "Orbit and zoom tests passed (mouse and touch)." },
+    { id: "k4", criterionId: "A3", t: 60, versionId: "v2", result: "passed", toolCallId: "tc13", note: "Each layer switch hid its layer." },
+    { id: "k5", criterionId: "A4", t: 63, versionId: "v2", result: "failed", toolCallId: "tc15", note: "Tab reached 0 of 12 parts; arrow keys did nothing." },
+    { id: "k6", criterionId: "A5", t: 67, versionId: "v2", result: "passed", toolCallId: "tc16", note: "At 390 px the controls sit below the board." },
+    { id: "k7", criterionId: "A4", t: 84, versionId: "v3", result: "passed", toolCallId: "tc19", note: "Tab reached 12 of 12 parts; arrows orbit; + zooms." },
+    { id: "k8", criterionId: "A1", t: 87, versionId: "v3", result: "passed", toolCallId: "tc20", note: "Part-details test passed after the fix." },
+    { id: "k9", criterionId: "A2", t: 87, versionId: "v3", result: "passed", toolCallId: "tc20", note: "Orbit and zoom tests passed after the fix." },
+    { id: "k10", criterionId: "A3", t: 87, versionId: "v3", result: "passed", toolCallId: "tc20", note: "Layer test passed after the fix." },
+    { id: "k11", criterionId: "A5", t: 93, versionId: "v3", result: "passed", toolCallId: "tc21", note: "At 390 px the controls sit below the board." },
+    { id: "k12", criterionId: "A6", t: 95, versionId: "v3", result: "not_checked", toolCallId: "tc22", note: "Offline check could not be run." },
+  ],
+
+  subagentTasks: [
+    { id: "st1", agentId: "tester", delegatedBy: "tc11", t: 54, tDone: 62,
+      brief: "Run tests/interaction.spec on the current viewer and report results.",
+      result: "6 of 6 interaction tests passed. Tests use mouse and touch only." },
+    { id: "st2", agentId: "reviewer", delegatedBy: "tc12", t: 55, tDone: 69,
+      brief: "Check keyboard access (A4) and the layout at 390 px (A5) on the current viewer. Report problems, not fixes.",
+      result: "One issue: parts can't be reached with the keyboard and orbit needs a mouse — A4 not met. Layout at 390 px is fine — A5 met." },
+  ],
+};
